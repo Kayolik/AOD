@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -30,6 +31,7 @@ public class AODHook implements IXposedHookLoadPackage {
             hookDozeParameters(lpparam);
             hookBatteryController(lpparam);
             hookMotorolaDoze(lpparam);
+            hookAODBrightness(lpparam);
         }
         if (pkg.equals("com.android.settings")) {
             hookSettingsControllers(lpparam);
@@ -164,6 +166,60 @@ public class AODHook implements IXposedHookLoadPackage {
                 log("OK " + c);
             } catch (Throwable t) { log("SKIP " + c); }
         }
+    }
+
+    private int readBrightnessPref() {
+        try {
+            XSharedPreferences prefs = new XSharedPreferences("com.example.kayolikAOD", "aod_prefs");
+            prefs.makeWorldReadable();
+            return prefs.getInt("aod_brightness", 100);
+        } catch (Throwable t) {
+            return 100;
+        }
+    }
+
+    private void hookAODBrightness(XC_LoadPackage.LoadPackageParam lpparam) {
+        String[] dozeClasses = {
+            "com.android.systemui.statusbar.phone.DozeParameters",
+            "com.android.systemui.doze.DozeParameters",
+            "com.motorola.systemui.doze.DozeParameters"
+        };
+        for (String cls : dozeClasses) {
+            try {
+                XposedHelpers.findAndHookMethod(cls, lpparam.classLoader, "getScreenBrightness",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam p) {
+                            int v = (int) Math.round(readBrightnessPref() * 2.55);
+                            p.setResult(v);
+                        }
+                    });
+                log("OK " + cls + ".getScreenBrightness");
+            } catch (Throwable t) { log("SKIP " + cls + ".getScreenBrightness: " + t.getMessage()); }
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod("android.content.res.Resources", lpparam.classLoader,
+                "getInteger", int.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam p) {
+                        Resources res = (Resources) p.thisObject;
+                        try {
+                            String name = res.getResourceName((Integer) p.args[0]);
+                            if (name != null) {
+                                String lname = name.toLowerCase();
+                                if (lname.contains("doze") && lname.contains("brightness")) {
+                                    int v = (int) Math.round(readBrightnessPref() * 2.55);
+                                    p.setResult(v);
+                                    log("RES int " + name + " -> " + v);
+                                }
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                });
+            log("OK Resources.getInteger");
+        } catch (Throwable t) { log("SKIP Resources.getInteger: " + t.getMessage()); }
     }
 
     private void log(String msg) { XposedBridge.log(TAG + " " + msg); }

@@ -14,6 +14,9 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
 
+    private static final String PREFS = "aod_prefs";
+    private static final String KEY_BRIGHTNESS = "aod_brightness";
+
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -72,6 +75,21 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 return "Error: " + e.getMessage();
             }
+        }
+
+        @JavascriptInterface
+        public int getAODBrightness() {
+            return getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_BRIGHTNESS, 100);
+        }
+
+        @JavascriptInterface
+        public String setAODBrightness(int percent) {
+            int v = Math.max(0, Math.min(100, percent));
+            boolean ok = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_BRIGHTNESS, v)
+                .commit();
+            return ok ? "OK" : "FAILED";
         }
     }
 }

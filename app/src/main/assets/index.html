@@ -88,6 +88,26 @@ h1 {
 .btn-result .ok { color: var(--ok); }
 .btn-result .err { color: var(--err); }
 
+.slider-row { display: flex; align-items: center; gap: 12px; padding: 6px 0 2px; }
+.slider-row .val { color: var(--bright); font-weight: 600; font-size: 14px; min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 4px; background: var(--line); border-radius: 2px; outline: none; margin: 0;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; border: none;
+}
+input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; border: none;
+}
+.slider-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); padding: 2px 0 0; }
+.hint { font-size: 11.5px; color: var(--dim); padding-top: 8px; line-height: 1.4; }
+.hint code { color: var(--accent); font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 11px; }
+.saved { color: var(--ok); font-size: 11.5px; padding-top: 4px; min-height: 14px; }
+
 .steps { display: flex; flex-direction: column; gap: 10px; }
 .step { display: flex; gap: 12px; align-items: flex-start; }
 .step .n {
@@ -126,6 +146,8 @@ h1 {
     padding: 8px 0 4px;
 }
 .footer .sep { color: #2c2e34; margin: 0 6px; }
+.footer .link { color: var(--accent); text-decoration: none; }
+.footer .link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -133,7 +155,6 @@ h1 {
 
     <div class="section">
         <h1 id="title">AOD Enabler</h1>
-        <div class="subtitle" id="deviceSub">Loading…</div>
     </div>
 
     <div class="card">
@@ -142,7 +163,6 @@ h1 {
         <div class="row"><span class="k">Codename</span><span class="v" id="infoCode">—</span></div>
         <div class="row"><span class="k">Manufacturer</span><span class="v" id="infoMfr">—</span></div>
         <div class="row"><span class="k">Android</span><span class="v" id="infoAndroid">—</span></div>
-        <div class="row"><span class="k">doze_always_on</span><span class="v" id="infoDoze">—</span></div>
     </div>
 
     <div class="card">
@@ -152,12 +172,22 @@ h1 {
     </div>
 
     <div class="card">
+        <h2>AOD Brightness</h2>
+        <div class="slider-row">
+            <input type="range" id="brightnessSlider" min="0" max="100" value="100" oninput="onBrightnessInput(this.value)">
+            <span class="val" id="brightnessValue">100%</span>
+        </div>
+        <div class="slider-scale"><span>0%</span><span>50%</span><span>100%</span></div>
+        <div class="saved" id="brightnessSaved"></div>
+        <div class="hint">Applies on next AOD wake. Patches <code>DozeParameters.getScreenBrightness</code> and any <code>*doze*brightness*</code> resource. If the value still resets, your ROM reads brightness from somewhere else — check <code>adb logcat -s AODHook:*</code> for which hook fired.</div>
+    </div>
+
+    <div class="card">
         <h2>Setup</h2>
         <div class="steps">
-            <div class="step"><span class="n">01</span><span class="t">Enable the <b>AOD Enabler</b> module in <b>LSPosed Manager</b>.</span></div>
-            <div class="step"><span class="n">02</span><span class="t">Scope: <b>System Framework</b>, <b>SystemUI</b>, <b>Settings</b>. Don't tick the AOD Enabler app itself — that's only the panel.</span></div>
-            <div class="step"><span class="n">03</span><span class="t"><b>Reboot</b> — hooks load during system startup.</span></div>
-            <div class="step"><span class="n">04</span><span class="t">AOD option appears in <b>Settings &gt; Display</b>.</span></div>
+            <div class="step"><span class="t">Enable the <b>AOD Enabler</b> module in <b>LSPosed Manager</b>.</span></div>
+            <div class="step"><span class="t">Scope: <b>System Framework</b>, <b>SystemUI</b>, <b>Settings</b>. Don't tick the AOD Enabler app itself — that's only the panel.</span></div>
+            <div class="step"><span class="t"><b>Reboot</b> — hooks load during system startup.</span></div>
         </div>
     </div>
 
@@ -174,19 +204,35 @@ h1 {
         <span class="sep">·</span>
         <span>LSPosed module</span>
         <span class="sep">·</span>
-        <span>Android 15</span>
+        <a class="link" href="https://github.com/Kayolik/AOD/releases" target="_blank" rel="noopener">Check for updates</a>
     </div>
 
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
+let brightnessTimer = null;
 
 function addLog(msg) {
     const box = $('logBox');
     const time = new Date().toLocaleTimeString('en-GB');
     box.textContent += '\n[' + time + '] ' + msg;
     box.scrollTop = box.scrollHeight;
+}
+
+function onBrightnessInput(v) {
+    $('brightnessValue').textContent = v + '%';
+    if (brightnessTimer) clearTimeout(brightnessTimer);
+    brightnessTimer = setTimeout(() => {
+        if (!window.AndroidBridge) return;
+        const r = window.AndroidBridge.setAODBrightness(parseInt(v, 10));
+        if (r === 'OK') {
+            $('brightnessSaved').textContent = 'Saved ' + v + '%';
+            addLog('AOD brightness set to ' + v + '%');
+        } else {
+            addLog('Brightness save failed: ' + r);
+        }
+    }, 250);
 }
 
 function forceAOD() {
@@ -209,9 +255,8 @@ function forceAOD() {
 
 function refresh() {
     if (!window.AndroidBridge) {
-        $('deviceSub').textContent = 'Preview (open on device for live data)';
         $('title').textContent = 'AOD Enabler';
-        $('infoModel').textContent = $('infoCode').textContent = $('infoMfr').textContent = $('infoAndroid').textContent = $('infoDoze').textContent = '—';
+        $('infoModel').textContent = $('infoCode').textContent = $('infoMfr').textContent = $('infoAndroid').textContent = '—';
         addLog('INFO: AndroidBridge missing — offline preview');
         return;
     }
@@ -220,14 +265,12 @@ function refresh() {
     $('infoCode').textContent     = window.AndroidBridge.getDeviceCodename();
     $('infoMfr').textContent      = window.AndroidBridge.getManufacturer();
     $('infoAndroid').textContent  = window.AndroidBridge.getAndroidVersion();
+    addLog('doze_always_on = ' + window.AndroidBridge.getDozeAlwaysOnValue());
 
-    const dozeVal = window.AndroidBridge.getDozeAlwaysOnValue();
-    const dozeEl  = $('infoDoze');
-    dozeEl.textContent = dozeVal;
-    dozeEl.className   = 'v' + (dozeVal === '1' ? ' ok' : (dozeVal === 'unset' ? '' : ' err'));
-
-    $('deviceSub').textContent = window.AndroidBridge.getManufacturer() + ' ' + window.AndroidBridge.getDeviceModel();
-    addLog('doze_always_on = ' + dozeVal);
+    const b = window.AndroidBridge.getAODBrightness();
+    $('brightnessSlider').value = b;
+    $('brightnessValue').textContent = b + '%';
+    $('brightnessSaved').textContent = 'Current: ' + b + '%';
 }
 
 window.onload = function() {
