@@ -41,9 +41,11 @@ This hooks SystemUI AOD classes specific to Hello UI. If Motorola changed the cl
 ## Requirements
 
 - Android 15
-- LSPosed (Zygisk) 1.9.2+
-- Magisk 26+ with Zygisk enabled
-- Root (obviously, it's LSPosed)
+- Root via **[SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra)** — this is what I test on. No idea if it works with Magisk, KernelSU, APatch, or whatever else people use now. If you try it, report back.
+- **[ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext)** — required for SukiSU to inject Zygisk modules properly
+- **[LSPosed (Vector fork)](https://github.com/JingMatrix/Vector/releases)** — the Xposed framework that loads this module. Grab the latest release APK from there.
+
+That's it. If your setup uses a different root method or LSPosed build, you're in uncharted territory.
 
 ---
 
@@ -108,9 +110,11 @@ No warranty. No liability. If this bricks your phone, that's on you. It's a syst
 ## Credits
 
 - **Kayolik** — code, testing on real hardware, frustration
-- **LSPosed team** — the framework that makes this possible
+- **[SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra)** — the root solution I run daily
+- **[ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext)** — Zygisk injection that makes LSPosed work on SukiSU
+- **[LSPosed Vector](https://github.com/JingMatrix/Vector)** — the Xposed framework fork that actually loads this module
 - **AI tools** — assisted with code structure and logic, but every hook was tested on an actual Moto Edge 40 Neo
 
 ---
 
-*Made for the Moto Edge 40 Neo. Java, LSPosed, and too much coffee.*
+*Made for the Moto Edge 40 Neo. Java, LSPosed, SukiSU, and too much coffee.*
