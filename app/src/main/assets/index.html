@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AOD Enabler Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg: #0b0c10;
+            --card: rgba(31, 40, 51, 0.85);
+            --card-border: rgba(255, 255, 255, 0.04);
+            --cyan: #00f0ff;
+            --purple: #ab00ff;
+            --green: #39ff14;
+            --red: #ff3131;
+            --amber: #ffb300;
+            --text: #c5c6c7;
+            --bright: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px 16px 40px;
+            min-height: 100vh;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .container { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+        /* ===== HEADER ===== */
+        .hero {
+            background: linear-gradient(170deg, rgba(0,240,255,0.08) 0%, rgba(171,0,255,0.06) 50%, rgba(31,40,51,0.9) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 32px 20px 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: -60%;
+            background: radial-gradient(circle, rgba(0,240,255,0.06) 0%, transparent 60%);
+            animation: heroPulse 8s ease-in-out infinite alternate;
+        }
+        @keyframes heroPulse { 0%{transform:scale(.85);opacity:.4} 100%{transform:scale(1.15);opacity:1} }
+
+        .hero h1 {
+            font-size: 30px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        .hero .sub { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.35); margin-top: 4px; position: relative; }
+
+        /* Ring */
+        .ring-wrap { position: relative; width: 140px; height: 140px; margin: 24px auto 18px; }
+        .ring-bg { position: absolute; inset: 0; border-radius: 50%; border: 3px dashed rgba(255,255,255,0.04); }
+        .ring-glow {
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 4px solid var(--red);
+            box-shadow: 0 0 18px var(--red);
+            transition: all .6s cubic-bezier(.4,0,.2,1);
+        }
+        .ring-glow.ok { border-color: var(--green); box-shadow: 0 0 22px var(--green); animation: spin 12s linear infinite; }
+        @keyframes spin { 100%{transform:rotate(360deg)} }
+
+        .ring-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; transition: .5s; }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 22px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255,49,49,0.1);
+            color: var(--red);
+            border: 1px solid rgba(255,49,49,0.2);
+            transition: all .5s;
+            position: relative;
+        }
+        .badge.ok { background: rgba(57,255,20,0.08); color: var(--green); border-color: rgba(57,255,20,0.2); box-shadow: 0 0 12px rgba(57,255,20,0.08); }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .card-head {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--bright);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Diagnostic rows */
+        .drow { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 13.5px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .drow:last-child { border-bottom: none; }
+        .dval { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); transition: .4s; flex-shrink: 0; }
+        .dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+        .txt-ok { color: var(--green); }
+        .txt-warn { color: var(--amber); }
+        .txt-err { color: var(--red); }
+        .txt-dim { color: rgba(255,255,255,0.3); }
+
+        /* Info rows */
+        .irow { display: flex; justify-content: space-between; padding: 7px 0; font-size: 13.5px; }
+        .irow .lbl { color: rgba(255,255,255,0.45); }
+        .irow .val { color: var(--bright); font-weight: 600; text-align: right; max-width: 60%; word-break: break-word; }
+
+        /* Steps */
+        .step { display: flex; gap: 12px; margin-bottom: 12px; }
+        .step:last-child { margin-bottom: 0; }
+        .snum {
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            color: #fff;
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; flex-shrink: 0;
+        }
+        .stxt { font-size: 13px; line-height: 1.45; color: var(--text); }
+        .stxt b { color: var(--bright); }
+
+        /* Button */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            color: var(--bright);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: transform .2s, box-shadow .3s;
+            margin-top: 6px;
+        }
+        .btn:active { transform: scale(.97); }
+        .btn-result {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 8px;
+            min-height: 18px;
+            color: var(--text);
+        }
+
+        /* Log viewer */
+        .log-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--green);
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .footer { text-align: center; font-size: 11px; color: rgba(255,255,255,0.15); padding: 10px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- HERO / STATUS -->
+    <div class="hero">
+        <h1>AOD Enabler</h1>
+        <p class="sub" id="deviceSub">Moto Edge 40 Neo</p>
+        <div class="ring-wrap">
+            <div class="ring-bg"></div>
+            <div class="ring-glow" id="ringGlow"></div>
+            <div class="ring-icon" id="ringIcon">🔒</div>
+        </div>
+        <div class="badge" id="badge">Sprawdzam...</div>
+    </div>
+
+    <!-- DIAGNOSTICS -->
+    <div class="card">
+        <div class="card-head">⚙️ Diagnostyka Hooków</div>
+        <div class="drow"><span>Hook: System Framework</span><span class="dval"><span class="dot" id="d1"></span><span id="t1" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>Hook: SystemUI</span><span class="dval"><span class="dot" id="d2"></span><span id="t2" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>Hook: Ustawienia</span><span class="dval"><span class="dot" id="d3"></span><span id="t3" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>doze_always_on (Secure)</span><span class="dval"><span class="dot" id="d4"></span><span id="t4" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>Status hooków</span><span class="dval"><span class="dot" id="d5"></span><span id="t5" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>Hooki (Global/prefs)</span><span class="dval"><span class="dot" id="d6"></span><span id="t6" class="txt-dim">—</span></span></div>
+        <div class="drow"><span>Podpowiedź</span><span class="dval"><span id="t7" class="txt-dim" style="max-width:55%;text-align:right;font-size:12px">—</span></span></div>
+    </div>
+
+    <!-- DEVICE INFO -->
+    <div class="card">
+        <div class="card-head">📱 Urządzenie</div>
+        <div class="irow"><span class="lbl">Model</span><span class="val" id="infoModel">—</span></div>
+        <div class="irow"><span class="lbl">Nazwa kodowa</span><span class="val" id="infoCode">—</span></div>
+        <div class="irow"><span class="lbl">Producent</span><span class="val" id="infoMfr">—</span></div>
+        <div class="irow"><span class="lbl">System</span><span class="val" id="infoAndroid">—</span></div>
+        <div class="irow"><span class="lbl">Root</span><span class="val">KernelSU + Zygisk Next</span></div>
+        <div class="irow"><span class="lbl">Framework</span><span class="val">LSPosed (JingMatrix)</span></div>
+    </div>
+
+    <!-- FORCE ENABLE -->
+    <div class="card">
+        <div class="card-head">🚀 Ręczne wymuszenie AOD</div>
+        <button class="btn" id="btnForce" onclick="forceAOD()">Wymuś doze_always_on = 1</button>
+        <div class="btn-result" id="btnResult"></div>
+    </div>
+
+    <!-- GUIDE -->
+    <div class="card">
+        <div class="card-head">💡 Instrukcja</div>
+        <div class="step"><div class="snum">1</div><div class="stxt">Włącz moduł <b>AOD Enabler</b> w <b>LSPosed Manager</b>.</div></div>
+        <div class="step"><div class="snum">2</div><div class="stxt">Scope w LSPosed: tylko <b>System Framework</b>, <b>SystemUI</b>, <b>Ustawienia</b>. <b>Nie</b> szukaj „AOD Enabler” na liście aplikacji — tam go nie będzie (to normalne).</div></div>
+        <div class="step"><div class="snum">3</div><div class="stxt"><b>Restart telefonu</b> — hooki załadują się podczas startu systemu.</div></div>
+        <div class="step"><div class="snum">4</div><div class="stxt">Wróć tutaj i sprawdź diagnostykę. Zielone = działa.</div></div>
+        <div class="step"><div class="snum">5</div><div class="stxt">Opcja AOD powinna pojawić się w <b>Ustawieniach Wyświetlacza</b>.</div></div>
+    </div>
+
+    <!-- LOG HINT -->
+    <div class="card">
+        <div class="card-head">📋 Logi debugowe</div>
+        <div class="stxt" style="margin-bottom:10px;font-size:12.5px">
+            Połącz telefon z PC i uruchom:<br>
+            <code style="color:var(--cyan)">adb logcat -s AODHook:*</code><br><br>
+            Zobaczysz szczegółowe logi każdego hooka z informacjami o oryginalnych i wymuszonych wartościach.
+        </div>
+        <div class="log-box" id="logBox">Brak logów — połącz z ADB lub naciśnij przycisk powyżej.</div>
+    </div>
+
+    <div class="footer">AOD Enabler v1.8 · manaus · Android 15</div>
+</div>
+
+<script>
+    const $ = id => document.getElementById(id);
+
+    function setDiag(idx, ok, label) {
+        const dot = $('d' + idx);
+        const txt = $('t' + idx);
+        dot.className = 'dot' + (ok === true ? ' ok' : ok === 'warn' ? ' warn' : '');
+        txt.textContent = label;
+        txt.className = ok === true ? 'txt-ok' : ok === 'warn' ? 'txt-warn' : ok === false ? 'txt-err' : 'txt-dim';
+    }
+
+    function setStatus(active) {
+        const glow = $('ringGlow');
+        const icon = $('ringIcon');
+        const badge = $('badge');
+        if (active) {
+            glow.className = 'ring-glow ok';
+            icon.textContent = '🔓';
+            badge.textContent = 'Moduł Aktywny';
+            badge.className = 'badge ok';
+        } else {
+            glow.className = 'ring-glow';
+            icon.textContent = '🔒';
+            badge.textContent = 'Moduł Nieaktywny';
+            badge.className = 'badge';
+        }
+    }
+
+    function addLog(msg) {
+        const box = $('logBox');
+        const time = new Date().toLocaleTimeString('pl-PL');
+        box.textContent += '\n[' + time + '] ' + msg;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function forceAOD() {
+        const res = $('btnResult');
+        if (!window.AndroidBridge) {
+            res.innerHTML = '<span class="txt-warn">Brak połączenia z Androidem (uruchom na telefonie)</span>';
+            addLog('WARN: AndroidBridge niedostępny');
+            return;
+        }
+        const result = window.AndroidBridge.forceEnableAOD();
+        if (result === 'OK') {
+            res.innerHTML = '<span class="txt-ok">✅ doze_always_on = 1 zapisano pomyślnie!</span>';
+            addLog('OK: doze_always_on ustawiono na 1');
+            refresh();
+        } else {
+            res.innerHTML = '<span class="txt-err">❌ ' + result + '</span>';
+            addLog('ERROR: ' + result);
+        }
+    }
+
+    function refresh() {
+        if (!window.AndroidBridge) {
+            setStatus(false);
+            setDiag(1, null, 'Brak AndroidBridge');
+            setDiag(2, null, 'Brak AndroidBridge');
+            setDiag(3, null, 'Brak AndroidBridge');
+            setDiag(4, null, 'Brak AndroidBridge');
+            setDiag(5, null, 'Brak AndroidBridge');
+            setDiag(6, null, 'Brak AndroidBridge');
+            $('deviceSub').textContent = 'Podgląd w przeglądarce';
+            addLog('INFO: Brak AndroidBridge — podgląd offline');
+            return;
+        }
+
+        // Device info
+        $('infoModel').textContent = window.AndroidBridge.getDeviceModel();
+        $('infoCode').textContent = window.AndroidBridge.getDeviceCodename();
+        $('infoMfr').textContent = window.AndroidBridge.getManufacturer();
+        $('infoAndroid').textContent = window.AndroidBridge.getAndroidVersion();
+        $('deviceSub').textContent = window.AndroidBridge.getManufacturer() + ' ' + window.AndroidBridge.getDeviceModel();
+
+        // Module status check
+        const lspOk = window.AndroidBridge.isLsposedModuleReachable();
+        const fw = window.AndroidBridge.isFrameworkHooked();
+        const sui = window.AndroidBridge.isSystemUiHooked();
+        const set = window.AndroidBridge.isSettingsHooked();
+        const active = window.AndroidBridge.isModuleActive();
+        const summary = window.AndroidBridge.getHookStatusSummary();
+        const err = window.AndroidBridge.getHookStatusError();
+        const hint = window.AndroidBridge.getScopeHint();
+        const dozeVal = window.AndroidBridge.getDozeAlwaysOnValue();
+        const dozeOk = dozeVal === '1';
+
+        setStatus(active || (lspOk && dozeOk));
+        addLog('CHECK: ' + summary);
+        if (window.AndroidBridge.getTmpStatusDump) {
+            addLog('TMP: ' + window.AndroidBridge.getTmpStatusDump());
+        }
+        if (window.AndroidBridge.getSeenPackages) {
+            addLog('SEEN: ' + window.AndroidBridge.getSeenPackages());
+        }
+        if (err && err !== 'brak') addLog('INFO: ' + err);
+        addLog('HINT: ' + hint);
+        addLog('CHECK: doze_always_on = ' + dozeVal);
+
+        setDiag(1, fw, fw ? 'Załadowany' : 'Brak — patrz podpowiedź');
+        setDiag(2, sui, sui ? 'Załadowany' : 'Brak — patrz podpowiedź');
+        setDiag(3, set, set ? 'Załadowany' : 'Opcjonalny');
+        setDiag(4, dozeOk, dozeVal);
+        setDiag(5, active, active ? 'OK' : (summary.length > 60 ? summary.substring(0, 60) + '…' : summary));
+        setDiag(6, lspOk, lspOk ? 'Widoczne w systemie' : 'Brak — restart + scope');
+        if ($('t7')) $('t7').textContent = hint;
+    }
+
+    window.onload = function() {
+        $('logBox').textContent = '--- AOD Enabler Debug Log ---';
+        addLog('START: Dashboard załadowany');
+        refresh();
+    };
+</script>
+</body>
+</html>
