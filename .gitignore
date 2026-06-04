@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Build artefacts staged for release — do not commit
+AOD-Enabler-*.apk

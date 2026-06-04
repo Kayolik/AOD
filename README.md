@@ -1,109 +1,194 @@
-# AOD Hook
+# AOD Enabler
 
-[![Android](https://img.shields.io/badge/Android-15-green?logo=android)](https://www.android.com/)
-[![LSPosed](https://img.shields.io/badge/LSPosed-Required-blue)](https://github.com/LSPosed/LSPosed)
-[![Device](https://img.shields.io/badge/Tested-Moto%20Edge%2040%20Neo-orange)](https://www.motorola.com/)
+[![Release v1.8.1](https://img.shields.io/badge/release-v1.8.1-d4922a)](../../releases/latest)
+[![Android 15](https://img.shields.io/badge/Android-15-3ddc84?logo=android)](https://www.android.com/)
+[![LSPosed](https://img.shields.io/badge/LSPosed-Vector-2196f3)](https://github.com/JingMatrix/Vector/releases)
+[![Moto Edge 40 Neo](https://img.shields.io/badge/tested-Moto%20Edge%2040%20Neo-orange)](https://www.motorola.com/)
+[![License](https://img.shields.io/badge/license-credit--required-yellow)]()
 
-Xposed module for Motorola Hello UI that lets you actually control your Always On Display instead of living with whatever Motorola decided you get.
+Xposed module that unlocks the native Always-On Display on Motorola Hello UI devices where the OEM has hidden it. Patches `Settings.Secure`, `Resources`, and the SystemUI Doze pipeline so the AOD toggle appears in **Settings → Display** and actually sticks.
 
-Built for the **Moto Edge 40 Neo** running Android 15. Might work on other Hello UI devices — if it does, let me know. If it doesn't, logs or PRs welcome.
+Built and tested daily on a **Moto Edge 40 Neo** running Android 15 (SukiSU + ZygiskNext + LSPosed Vector).
+
+---
+
+## Contents
+
+- [What it does](#what-it-does)
+- [What's new in 1.8.1](#whats-new-in-181)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [How it works](#how-it-works)
+- [Build it yourself](#build-it-yourself)
+- [Troubleshooting](#troubleshooting)
+- [Security](#security)
+- [License](#license)
+- [Credits](#credits)
 
 ---
 
 ## What it does
 
-- **Custom clock layout** — Move the AOD clock where you want it, not where Motorola put it.
-- **Burn-in protection** — OLED shifting so your screen doesn't get ghosted after 6 months.
-- **Brightness & color control** — AOD doesn't have to be blinding at 3 AM. Adjust it.
-- **Web config panel** — Local HTML interface, no internet, no accounts, no bullshit. Just a clean settings page.
-- **Zero background junk** — Only hooks when AOD is actually active. No persistent services eating your battery.
+Forces AOD on, even when Motorola's framework reports it as unavailable. Concretely:
+
+| Layer | What gets patched |
+|-------|-------------------|
+| `Settings.Secure` | `doze_always_on` and `doze_pulse_on_pick_up` always read as `1` |
+| `AmbientDisplayConfiguration` | Every `alwaysOn*` / `*AlwaysOn*` method returns `true` |
+| `Resources.getBoolean` | `config_dozeAlwaysOn*`, `config_dozeAfterScreenOff`, `config_ambientDisplayAvailable` always `true` |
+| `DozeParameters.getAlwaysOn` | Always `true` (stock + Motorola variant) |
+| `BatteryControllerImpl.isAodPowerSave` | Always `false` |
+| `AmbientDisplay*PreferenceController` | `getAvailabilityStatus` always `0` (AVAILABLE) — surfaces the toggle in Settings |
+
+No background services, no native blobs, no config files. Hooks only fire when the hooked process loads — zero battery cost when the phone is awake.
 
 ---
 
-## Screenshots
+## What's new in 1.8.1
 
-> Coming soon. If you build it before I add them, you'll see the panel yourself.
-
----
-
-## Compatibility
-
-| Device | ROM | Android | Status |
-|--------|-----|---------|--------|
-| Moto Edge 40 Neo | Hello UI | 15 | ✅ Daily driver |
-| Other Moto (Hello UI) | Hello UI | 15 | 🟡 Should work, untested |
-| Anything else | AOSP/Custom | 15+ | 🟡 No guarantees |
-
-This hooks SystemUI AOD classes specific to Hello UI. If Motorola changed the class names on your build, it won't work and you'll need to adapt the hooks.
+- Removed dead diagnostic code (`HookStatus`, `HookStatusStore`) that was never wired up.
+- Rewrote the in-app panel: no more neon "ring + lock" hero, no debug rows. Clean dark layout with device info, force-AOD button, and logcat helper.
+- Panel text translated to English.
+- Dropped `android.permission.INTERNET` from the manifest — the panel is 100% local now.
+- Trimmed `MainActivity` to the methods the panel actually calls.
+- All previous functionality preserved.
 
 ---
 
 ## Requirements
 
-- Android 15
-- Root via **[SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra)** — this is what I test on. No idea if it works with Magisk, KernelSU, APatch, or whatever else people use now. If you try it, report back.
-- **[ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext)** — required for SukiSU to inject Zygisk modules properly
-- **[LSPosed (Vector fork)](https://github.com/JingMatrix/Vector/releases)** — the Xposed framework that loads this module. Grab the latest release APK from there.
+- **Android 15** (API 35)
+- **Root** — tested on **[SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra)**. *Should* work on Magisk / KernelSU / APatch, but I only run SukiSU, so your mileage may vary.
+- **[ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext)** — required for Zygisk module loading under SukiSU
+- **[LSPosed Vector](https://github.com/JingMatrix/Vector/releases)** — the LSPosed fork that actually loads modules on modern setups. Grab the latest release APK.
 
-That's it. If your setup uses a different root method or LSPosed build, you're in uncharted territory.
+If your setup is anything other than SukiSU + ZygiskNext + LSPosed Vector, you're in uncharted territory. PRs welcome if you make it work elsewhere.
 
 ---
 
 ## Installation
 
-1. Download APK from [Releases](../../releases) or build it yourself (recommended).
-2. Install it. **Don't open yet.**
-3. LSPosed Manager → Modules → enable AOD Hook.
-4. Scope: check **System UI** (required). System Framework optional if you want deeper hooks.
-5. Reboot.
-6. Open the app, configure, done.
+1. Grab `AOD-Enabler-v1.8.1.apk` from [Releases](../../releases).
+2. Install it. **Don't open it yet.**
+3. Open **LSPosed Manager** → **Modules** → enable **AOD Enabler**.
+4. **Scope** — check all three:
+   - ✅ **System Framework** (`android`)
+   - ✅ **SystemUI** (`com.android.systemui`)
+   - ✅ **Settings** (`com.android.settings`)
+
+   Don't tick the AOD Enabler app itself — that's only the config panel.
+5. **Reboot.** Hooks load during system startup, not at runtime.
+6. Open the app. Verify the panel loads with your device info.
+
+If the **Force AOD** button in the panel returns `No permission`, grant `WRITE_SECURE_SETTINGS` from a PC:
+
+```bash
+adb shell pm grant com.example.kayolikAOD android.permission.WRITE_SECURE_SETTINGS
+```
 
 ### Build it yourself
 
 ```bash
 git clone https://github.com/Kayolik/AOD.git
 cd AOD
-./gradlew assembleDebug    # Linux/Mac
-gradlew.bat assembleDebug  # Windows
+./gradlew assembleDebug        # Linux / macOS
+gradlew.bat assembleDebug     # Windows
 ```
 
 Output: `app/build/outputs/apk/debug/app-debug.apk`
 
-Gradle Wrapper is included. You don't need Gradle installed locally. Android Studio will also handle it if you just open the folder.
+Gradle Wrapper is included — no local Gradle install needed. Android Studio also works: just open the folder and let it sync.
 
 ---
 
-## Security
+## Usage
 
-This module is **fully open source**. No network permissions. No telemetry. No obfuscated code. No native blobs. Just Java hooks and a local HTML file for settings.
+1. Open the AOD Enabler app.
+2. Check the **Device** card — `doze_always_on` should be `1` after boot.
+3. If not, tap **Write doze_always_on = 1**. (Requires `WRITE_SECURE_SETTINGS`, see above.)
+4. Go to **Settings → Display → Always-on display** — the toggle should be there and on.
+5. Done. The phone now shows AOD with your stock clock.
 
-You can read every line in [`app/src/main/java/com/example/kayolikAOD/`](app/src/main/java/com/example/kayolikAOD/). If you don't trust prebuilt APKs, build it yourself — the output should match.
+To uninstall cleanly: disable the module in LSPosed → reboot → uninstall the APK. Don't just remove the APK — orphaned hooks in SystemUI can cause weirdness.
+
+---
+
+## How it works
+
+The module implements `IXposedHookLoadPackage` and dispatches on `lpparam.packageName`:
+
+```
+android  (System Framework)  → AmbientDisplayConfiguration, Settings.Secure, Resources
+com.android.systemui         → DozeParameters, BatteryControllerImpl, Motorola Doze
+com.android.settings         → AmbientDisplay*PreferenceController
+```
+
+Each hook is wrapped in its own `try/catch` — a missing class on a future build of SystemUI logs a `SKIP` line and moves on, instead of crashing boot.
+
+Debug logs are tagged `AODHook`:
+
+```bash
+adb logcat -s AODHook:*
+```
+
+You should see lines like:
+
+```
+AODHook OK android.hardware.display.AmbientDisplayConfiguration.alwaysOnAvailable
+AODHook OK Secure.getInt
+AODHook OK com.android.systemui.statusbar.phone.DozeParameters.getAlwaysOn
+AODHook OK com.android.settings.display.AmbientDisplayAlwaysOnPreferenceController
+```
+
+If you only see `SKIP` lines for one scope, that scope's classes don't match your SystemUI build. Open an issue with the logcat output.
 
 ---
 
 ## Troubleshooting
 
-**Module not showing in LSPosed?**
-Install the APK first, then enable in LSPosed, then reboot. Order matters.
+**Module doesn't show up in LSPosed Manager**
+Install the APK first, *then* open LSPosed. Order matters.
 
-**Changes not applying?**
-Force-stop SystemUI or reboot. Hello UI caches AOD layouts aggressively.
+**Hooks don't fire**
+Check `adb logcat -s AODHook:*`. If you see nothing at all, the module is probably disabled or scope is wrong. If you see only `SKIP` lines, your SystemUI build has different class names — the hook targets need adapting.
 
-**SystemUI crash / bootloop?**
-Boot with volume down held to enter Safe Mode, disable the module in LSPosed, reboot normally. Always have a recovery plan before testing new builds.
+**AOD toggle still missing in Settings**
+Make sure scope includes `com.android.settings`. That's what makes the preference controller report `AVAILABLE`.
 
-**Config panel blank?**
-Update your WebView implementation in Android settings. Some OEM WebViews are broken.
+**AOD turns off after reboot**
+The hook should make it stick. If it doesn't, run the **Write doze_always_on = 1** button in the panel.
+
+**Bootloop after enabling**
+Reboot into recovery → wipe Dalvik cache, or boot to safe mode (hold volume down) → disable the module in LSPosed → reboot. Always have a recovery plan before testing.
+
+**Panel is blank**
+Update Android System WebView from the Play Store. Some OEM ROMs ship broken WebView implementations.
 
 ---
 
-## License / Usage
+## Security
+
+- ✅ Fully open source. No obfuscation, no native blobs.
+- ✅ Zero network permissions (removed in 1.8.1).
+- ✅ Zero telemetry, analytics, or third-party SDKs.
+- ✅ No persistent services, no background activity, no broadcast receivers.
+- The panel is a single local HTML file served from `assets/`.
+
+Every Java source file is under 250 lines. Read them:
+[`app/src/main/java/com/example/kayolikAOD/`](app/src/main/java/com/example/kayolikAOD/)
+
+If you don't trust a prebuilt APK, build it yourself — the output will match the source bit-for-bit.
+
+---
+
+## License
 
 Do whatever you want with this code. Fork it, modify it, ship it in your ROM, sell it — I don't care.
 
-**One condition:** if you use this code or any part of it, **credit the original work**. Don't pretend you wrote it from scratch. That's it.
+**One condition:** if you use this code or any part of it, **credit the original work**. Don't pretend you wrote it from scratch.
 
-No warranty. No liability. If this bricks your phone, that's on you. It's a system-level hook — you knew the risks when you installed LSPosed.
+No warranty. No liability. It's a system-level hook — if it bricks your phone, that's on you. You knew the risks when you installed LSPosed.
 
 ---
 
@@ -112,7 +197,7 @@ No warranty. No liability. If this bricks your phone, that's on you. It's a syst
 - **Kayolik** — code, testing on real hardware, frustration
 - **[SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra)** — the root solution I run daily
 - **[ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext)** — Zygisk injection that makes LSPosed work on SukiSU
-- **[LSPosed Vector](https://github.com/JingMatrix/Vector)** — the Xposed framework fork that actually loads this module
+- **[LSPosed Vector](https://github.com/JingMatrix/Vector)** — the LSPosed framework fork that loads this module
 - **AI tools** — assisted with code structure and logic, but every hook was tested on an actual Moto Edge 40 Neo
 
 ---
