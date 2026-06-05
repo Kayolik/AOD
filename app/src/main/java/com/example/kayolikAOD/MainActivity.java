@@ -15,9 +15,6 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
 
-    private static final String PREFS = "aod_prefs";
-    private static final String KEY_BRIGHTNESS = "aod_brightness";
-
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -26,12 +23,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.parseColor("#101114"));
-        window.setNavigationBarColor(Color.parseColor("#101114"));
+        window.setStatusBarColor(Color.parseColor("#0a0a0a"));
+        window.setNavigationBarColor(Color.parseColor("#0a0a0a"));
 
         webView = new WebView(this);
         setContentView(webView);
-        webView.setBackgroundColor(Color.parseColor("#101114"));
+        webView.setBackgroundColor(Color.parseColor("#0a0a0a"));
 
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
@@ -59,25 +56,9 @@ public class MainActivity extends Activity {
     }
 
     public class AndroidBridge {
-
         @JavascriptInterface public String getDeviceModel()     { return android.os.Build.MODEL; }
         @JavascriptInterface public String getDeviceCodename()  { return android.os.Build.DEVICE; }
         @JavascriptInterface public String getManufacturer()    { return android.os.Build.MANUFACTURER; }
         @JavascriptInterface public String getAndroidVersion()  { return "Android " + android.os.Build.VERSION.RELEASE + " (API " + android.os.Build.VERSION.SDK_INT + ")"; }
-
-        @JavascriptInterface
-        public int getAODBrightness() {
-            return getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_BRIGHTNESS, 100);
-        }
-
-        @JavascriptInterface
-        public String setAODBrightness(int percent) {
-            int v = Math.max(0, Math.min(100, percent));
-            boolean ok = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .edit()
-                .putInt(KEY_BRIGHTNESS, v)
-                .commit();
-            return ok ? "OK" : "FAILED";
-        }
     }
 }

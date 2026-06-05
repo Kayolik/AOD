@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -31,7 +30,6 @@ public class AODHook implements IXposedHookLoadPackage {
             hookDozeParameters(lpparam);
             hookBatteryController(lpparam);
             hookMotorolaDoze(lpparam);
-            hookAODBrightness(lpparam);
         }
         if (pkg.equals("com.android.settings")) {
             hookSettingsControllers(lpparam);
@@ -166,97 +164,6 @@ public class AODHook implements IXposedHookLoadPackage {
                 log("OK " + c);
             } catch (Throwable t) { log("SKIP " + c); }
         }
-    }
-
-    private int readBrightnessPref() {
-        try {
-            XSharedPreferences prefs = new XSharedPreferences("com.example.kayolikAOD", "aod_prefs");
-            prefs.makeWorldReadable();
-            return prefs.getInt("aod_brightness", 100);
-        } catch (Throwable t) {
-            return 100;
-        }
-    }
-
-    private void hookAODBrightness(XC_LoadPackage.LoadPackageParam lpparam) {
-        // 1) Reflection-scan every DozeParameters class for *Brightness* methods
-        //    Returns our value regardless of method name (getScreenBrightness,
-        //    getDimScreenBrightness, getBrightScreenBrightness, etc.)
-        String[] dozeClasses = {
-            "com.android.systemui.statusbar.phone.DozeParameters",
-            "com.android.systemui.doze.DozeParameters",
-            "com.motorola.systemui.doze.DozeParameters"
-        };
-        for (String cls : dozeClasses) {
-            Class<?> clazz;
-            try { clazz = XposedHelpers.findClass(cls, lpparam.classLoader); }
-            catch (Throwable t) { log("SKIP class " + cls); continue; }
-            for (Method m : clazz.getDeclaredMethods()) {
-                String name = m.getName();
-                if (!name.toLowerCase().contains("brightness")) continue;
-                final Class<?> retType = m.getReturnType();
-                if (retType != int.class && retType != float.class) continue;
-                try {
-                    XposedHelpers.findAndHookMethod(clazz, name, m.getParameterTypes(),
-                        new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam p) {
-                                if (retType == int.class) {
-                                    p.setResult((int) Math.round(readBrightnessPref() * 2.55));
-                                } else {
-                                    p.setResult(readBrightnessPref() / 100f);
-                                }
-                            }
-                        });
-                    log("OK " + cls + "." + name + " -> " + retType.getSimpleName());
-                } catch (Throwable t) { log("SKIP " + cls + "." + name + ": " + t.getMessage()); }
-            }
-        }
-
-        // 2) Hook Window.setAttributes in systemui - override screenBrightness in
-        //    LayoutParams when the caller is supplying a value (0.0-1.0). AOD goes
-        //    through this path; we leave untouched when value is BRIGHTNESS_OVERRIDE_NONE (-1).
-        try {
-            XposedHelpers.findAndHookMethod("android.view.Window", lpparam.classLoader,
-                "setAttributes", android.view.WindowManager.LayoutParams.class,
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam p) {
-                        android.view.WindowManager.LayoutParams lp =
-                            (android.view.WindowManager.LayoutParams) p.args[0];
-                        if (lp == null) return;
-                        float b = lp.screenBrightness;
-                        if (b < 0f || b > 1f) return; // unspecified or out of range
-                        float newB = readBrightnessPref() / 100f;
-                        if (Math.abs(b - newB) > 0.001f) {
-                            lp.screenBrightness = newB;
-                            log("WINDOW setAttributes brightness: " + b + " -> " + newB);
-                        }
-                    }
-                });
-            log("OK Window.setAttributes");
-        } catch (Throwable t) { log("SKIP Window.setAttributes: " + t.getMessage()); }
-
-        // 3) Resources.getInteger - any resource name with 'brightness' in it
-        try {
-            XposedHelpers.findAndHookMethod("android.content.res.Resources", lpparam.classLoader,
-                "getInteger", int.class,
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam p) {
-                        Resources res = (Resources) p.thisObject;
-                        try {
-                            String name = res.getResourceName((Integer) p.args[0]);
-                            if (name != null && name.toLowerCase().contains("brightness")) {
-                                int v = (int) Math.round(readBrightnessPref() * 2.55);
-                                p.setResult(v);
-                                log("RES int " + name + " -> " + v);
-                            }
-                        } catch (Throwable ignored) {}
-                    }
-                });
-            log("OK Resources.getInteger");
-        } catch (Throwable t) { log("SKIP Resources.getInteger: " + t.getMessage()); }
     }
 
     private void log(String msg) { XposedBridge.log(TAG + " " + msg); }
