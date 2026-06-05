@@ -5,91 +5,150 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AOD Enabler</title>
 <style>
+:root {
+    --bg: #0d0e10;
+    --line: #22252b;
+    --text: #c4c5c8;
+    --muted: #6f7178;
+    --bright: #ecedee;
+    --ok: #5cc77a;
+    --err: #dc6c6c;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: #0a0a0a; }
+html, body { background: var(--bg); }
 body {
-    font: 13px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    color: #c0c0c0;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    color: var(--text);
     min-height: 100vh;
     -webkit-user-select: none;
     user-select: none;
-    padding: 0 0 40px;
+    padding: 0 0 32px;
 }
-.c { max-width: 560px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 18px; }
 
-.h { padding: 24px 0 16px; border-bottom: 1px solid #1a1a1a; }
-.h h1 { font-size: 15px; font-weight: 600; color: #ededed; }
-.h .v { font-size: 11px; color: #5a5a5a; margin-top: 4px; }
+.bar {
+    padding: 22px 0 18px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+}
+.bar h1 { font-size: 18px; font-weight: 600; color: var(--bright); letter-spacing: -0.2px; }
+.bar .v  { font-size: 11px; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 
-.s { padding: 18px 0 20px; border-bottom: 1px solid #1a1a1a; }
-.s:last-of-type { border-bottom: none; }
-h2 { font-size: 11px; font-weight: 600; color: #6a6a6a; margin-bottom: 10px; }
+.card { padding: 18px 0 20px; border-bottom: 1px solid var(--line); }
+.card:last-of-type { border-bottom: none; }
+.card h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
 
-.r { display: flex; justify-content: space-between; padding: 2px 0; }
-.r .k { color: #6a6a6a; }
-.r .v { color: #ededed; text-align: right; max-width: 65%; word-break: break-word; }
+.row { display: flex; justify-content: space-between; padding: 4px 0; align-items: center; }
+.row .k { color: var(--muted); }
+.row .v { color: var(--bright); font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
+.row .v.dim { color: var(--muted); font-weight: 400; }
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
+.dot.ok  { background: var(--ok); }
+.dot.err { background: var(--err); }
 
 ol { padding-left: 18px; }
-ol li { padding: 3px 0; }
-ol li::marker { color: #5a5a5a; }
-ol li b { color: #ededed; font-weight: 600; }
-code { color: #ededed; }
+ol li { padding: 4px 0; }
+ol li::marker { color: var(--muted); }
+ol li b { color: var(--bright); font-weight: 600; }
+ol li code { color: var(--bright); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
 
-.tip { font-size: 11.5px; color: #5a5a5a; margin: 12px 0 6px; }
+.note { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+.note code { color: var(--bright); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+
+.btn {
+    display: inline-block;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:active { background: #181a1f; }
+.btn + .btn { margin-left: 8px; }
+.btn-row { margin-top: 4px; }
 
 pre {
-    background: #050505;
-    border: 1px solid #1a1a1a;
+    background: #07080a;
+    border: 1px solid var(--line);
+    border-radius: 6px;
     padding: 10px 12px;
-    font: inherit;
-    font-size: 11.5px;
-    color: #6fcf6a;
-    margin-top: 6px;
-    min-height: 60px;
+    font: 12px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--ok);
+    margin-top: 10px;
+    min-height: 52px;
     max-height: 220px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-all;
 }
 
-.f { padding: 18px 0 0; text-align: center; font-size: 11px; color: #4a4a4a; }
-.f a { color: #6a6a6a; text-decoration: none; }
-.f a:hover { color: #ededed; text-decoration: underline; }
+.foot { padding: 20px 0 0; text-align: center; font-size: 12px; color: var(--muted); }
+.foot a { color: var(--muted); text-decoration: none; }
+.foot a:hover { color: var(--bright); }
 </style>
 </head>
 <body>
-<div class="c">
+<div class="wrap">
 
-<div class="h">
+<div class="bar">
     <h1>AOD Enabler</h1>
-    <div class="v">v1.8.1 · LSPosed module</div>
+    <span class="v">v1.8.1</span>
 </div>
 
-<div class="s">
+<div class="card">
+    <h2>Status</h2>
+    <div class="row">
+        <span class="k">doze_always_on</span>
+        <span class="v" id="s"><span class="dot" id="sdot"></span><span id="stxt" class="dim">checking...</span></span>
+    </div>
+</div>
+
+<div class="card">
     <h2>Device</h2>
-    <div class="r"><span class="k">Model</span><span class="v" id="m">...</span></div>
-    <div class="r"><span class="k">Codename</span><span class="v" id="c">...</span></div>
-    <div class="r"><span class="k">Manufacturer</span><span class="v" id="f">...</span></div>
-    <div class="r"><span class="k">Android</span><span class="v" id="a">...</span></div>
+    <div class="row"><span class="k">Model</span><span class="v" id="m">&mdash;</span></div>
+    <div class="row"><span class="k">Codename</span><span class="v" id="c">&mdash;</span></div>
+    <div class="row"><span class="k">Manufacturer</span><span class="v" id="f">&mdash;</span></div>
+    <div class="row"><span class="k">Android</span><span class="v" id="a">&mdash;</span></div>
 </div>
 
-<div class="s">
+<div class="card">
     <h2>Setup</h2>
     <ol>
-        <li>Enable <b>AOD Enabler</b> in LSPosed Manager.</li>
-        <li>Scope: <b>System Framework</b> and <b>SystemUI</b>. Do not tick the AOD Enabler app, do not tick Settings.</li>
-        <li>Reboot.</li>
-        <li>AOD toggle should be in <b>Settings &gt; Display</b>.</li>
+        <li>Open <b>LSPosed Manager</b> and enable <b>AOD Enabler</b>.</li>
+        <li>Scope: tick <b>System Framework</b> and <b>SystemUI</b>. Do not tick the AOD Enabler app. Do not tick Settings.</li>
+        <li>Reboot the device.</li>
+        <li>The AOD toggle should appear under <b>Settings &gt; Display</b>.</li>
     </ol>
+    <div class="btn-row">
+        <button class="btn" id="open-lsposed">Open LSPosed</button>
+    </div>
 </div>
 
-<div class="s">
+<div class="card">
     <h2>Debug</h2>
-    <div class="tip">Run on a PC: <code>adb logcat -s AODHook:*</code></div>
+    <div class="note">Run on a PC: <code>adb logcat -s AODHook:*</code></div>
+    <div class="btn-row">
+        <button class="btn" id="copy-adb">Copy adb command</button>
+    </div>
     <pre id="log"></pre>
 </div>
 
-<div class="f">
+<div class="foot">
     <a href="https://github.com/Kayolik/AOD" target="_blank" rel="noopener">github.com/Kayolik/AOD</a>
 </div>
 
@@ -97,17 +156,49 @@ pre {
 
 <script>
 const $ = id => document.getElementById(id);
+let t;
 
 function log(msg) {
     const box = $('log');
-    const t = new Date().toLocaleTimeString('en-GB');
-    box.textContent += '[' + t + '] ' + msg + '\n';
+    if (t) clearTimeout(t);
+    box.textContent += '[' + new Date().toLocaleTimeString('en-GB') + '] ' + msg + '\n';
     box.scrollTop = box.scrollHeight;
 }
 
-function refresh() {
+function copyAdb() {
+    const cmd = 'adb logcat -s AODHook:*';
+    const ta = document.createElement('textarea');
+    ta.value = cmd;
+    ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); log('copied: ' + cmd); }
+    catch (e) { log('copy failed: ' + e.message); }
+    document.body.removeChild(ta);
+}
+
+function refreshStatus() {
     if (!window.AndroidBridge) {
-        $('m').textContent = $('c').textContent = $('f').textContent = $('a').textContent = '—';
+        $('stxt').textContent = 'no bridge';
+        $('stxt').className = 'dim';
+        $('sdot').className = 'dot';
+        return;
+    }
+    const v = window.AndroidBridge.getAodStatus();
+    const dot = $('sdot');
+    const txt = $('stxt');
+    if (v === 'active') {
+        dot.className = 'dot ok'; txt.textContent = 'active'; txt.className = '';
+    } else if (v === 'off') {
+        dot.className = 'dot err'; txt.textContent = 'off'; txt.className = 'err';
+    } else {
+        dot.className = 'dot'; txt.textContent = v; txt.className = 'dim';
+    }
+}
+
+function refreshDevice() {
+    if (!window.AndroidBridge) {
+        $('m').textContent = $('c').textContent = $('f').textContent = $('a').textContent = '\u2014';
         log('preview (no bridge)');
         return;
     }
@@ -118,8 +209,16 @@ function refresh() {
     log('device info loaded');
 }
 
+$('copy-adb').onclick = copyAdb;
+$('open-lsposed').onclick = function() {
+    if (!window.AndroidBridge) { log('cannot open LSPosed in preview'); return; }
+    if (window.AndroidBridge.openLSPosed()) log('opened LSPosed Manager');
+    else log('LSPosed Manager not installed');
+};
+
 window.onload = function() {
-    refresh();
+    refreshStatus();
+    refreshDevice();
 };
 </script>
 </body>

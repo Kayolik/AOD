@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -15,20 +16,22 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
 
+    private static final String BG = "#0d0e10";
+
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Window window = getWindow();
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.parseColor("#0a0a0a"));
-        window.setNavigationBarColor(Color.parseColor("#0a0a0a"));
+        Window w = getWindow();
+        w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        w.setStatusBarColor(Color.parseColor(BG));
+        w.setNavigationBarColor(Color.parseColor(BG));
 
         webView = new WebView(this);
         setContentView(webView);
-        webView.setBackgroundColor(Color.parseColor("#0a0a0a"));
+        webView.setBackgroundColor(Color.parseColor(BG));
 
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
@@ -60,5 +63,30 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String getDeviceCodename()  { return android.os.Build.DEVICE; }
         @JavascriptInterface public String getManufacturer()    { return android.os.Build.MANUFACTURER; }
         @JavascriptInterface public String getAndroidVersion()  { return "Android " + android.os.Build.VERSION.RELEASE + " (API " + android.os.Build.VERSION.SDK_INT + ")"; }
+
+        @JavascriptInterface
+        public String getAodStatus() {
+            try {
+                int v = Settings.Secure.getInt(getContentResolver(), "doze_always_on", -1);
+                if (v == 1) return "active";
+                if (v == 0) return "off";
+                return "unset";
+            } catch (Exception e) {
+                return "error";
+            }
+        }
+
+        @JavascriptInterface
+        public boolean openLSPosed() {
+            Intent i = getPackageManager().getLaunchIntentForPackage("org.lsposed.manager");
+            if (i == null) {
+                try {
+                    i = getPackageManager().getLaunchIntentForPackage("org.meowcat.edxposed.manager");
+                } catch (Exception ignored) {}
+            }
+            if (i == null) return false;
+            startActivity(i);
+            return true;
+        }
     }
 }
