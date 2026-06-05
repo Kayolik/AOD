@@ -15,7 +15,7 @@ No custom rendering — hooks only.
 
 ## What it does
 
-- Adds the **Always-on display** toggle in Settings → Display
+
 - AOD stays active even with Battery Saver enabled
 - Works regardless of `doze_always_on` value — reads are intercepted at the framework level, not dependent on Settings.Secure state
 
