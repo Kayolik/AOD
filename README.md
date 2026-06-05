@@ -54,7 +54,7 @@ No custom rendering — hooks only.
 git clone https://github.com/Kayolik/AOD
 cd AOD
 echo "sdk.dir=$ANDROID_HOME" > local.properties
-./gradlew assembleDebug
+gradlew.bat assembleDebug
 ```
 
 Output: `app/build/outputs/apk/debug/app-debug.apk`
