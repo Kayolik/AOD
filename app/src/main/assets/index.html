@@ -52,10 +52,6 @@ body {
 .row .v { color: var(--bright); font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
 .row .v.dim { color: var(--muted); font-weight: 400; }
 
-.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
-.dot.ok  { background: var(--ok); }
-.dot.err { background: var(--err); }
-
 ol { padding-left: 18px; }
 ol li { padding: 4px 0; }
 ol li::marker { color: var(--muted); }
@@ -107,15 +103,7 @@ pre {
 
 <div class="bar">
     <h1>AOD Enabler</h1>
-    <span class="v">v1.8.1</span>
-</div>
-
-<div class="card">
-    <h2>Status</h2>
-    <div class="row">
-        <span class="k">doze_always_on</span>
-        <span class="v" id="s"><span class="dot" id="sdot"></span><span id="stxt" class="dim">checking...</span></span>
-    </div>
+    <span class="v">v1.9.0</span>
 </div>
 
 <div class="card">
@@ -177,25 +165,6 @@ function copyAdb() {
     document.body.removeChild(ta);
 }
 
-function refreshStatus() {
-    if (!window.AndroidBridge) {
-        $('stxt').textContent = 'no bridge';
-        $('stxt').className = 'dim';
-        $('sdot').className = 'dot';
-        return;
-    }
-    const v = window.AndroidBridge.getAodStatus();
-    const dot = $('sdot');
-    const txt = $('stxt');
-    if (v === 'active') {
-        dot.className = 'dot ok'; txt.textContent = 'active'; txt.className = '';
-    } else if (v === 'off') {
-        dot.className = 'dot err'; txt.textContent = 'off'; txt.className = 'err';
-    } else {
-        dot.className = 'dot'; txt.textContent = v; txt.className = 'dim';
-    }
-}
-
 function refreshDevice() {
     if (!window.AndroidBridge) {
         $('m').textContent = $('c').textContent = $('f').textContent = $('a').textContent = '\u2014';
@@ -217,7 +186,6 @@ $('open-lsposed').onclick = function() {
 };
 
 window.onload = function() {
-    refreshStatus();
     refreshDevice();
 };
 </script>
