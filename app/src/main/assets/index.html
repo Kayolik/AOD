@@ -179,6 +179,10 @@ input[type=range]::-moz-range-thumb {
         </div>
         <div class="slider-scale"><span>0%</span><span>50%</span><span>100%</span></div>
         <div class="saved" id="brightnessSaved"></div>
+        <div class="hint">Applies on next AOD wake. Patches <code>DozeParameters</code> brightness methods and the AOD <code>Window</code> attributes. If it still resets, your ROM reads brightness from somewhere we don't reach — <code>adb logcat -s AODHook:*</code> will show which hook fired.</div>
+    </div>
+        <div class="slider-scale"><span>0%</span><span>50%</span><span>100%</span></div>
+        <div class="saved" id="brightnessSaved"></div>
         <div class="hint">Applies on next AOD wake. Patches <code>DozeParameters.getScreenBrightness</code> and any <code>*doze*brightness*</code> resource. If the value still resets, your ROM reads brightness from somewhere else — check <code>adb logcat -s AODHook:*</code> for which hook fired.</div>
     </div>
 
@@ -235,24 +239,6 @@ function onBrightnessInput(v) {
     }, 250);
 }
 
-function forceAOD() {
-    const res = $('btnResult');
-    if (!window.AndroidBridge) {
-        res.innerHTML = '<span class="err">No Android bridge — open on the device.</span>';
-        addLog('WARN: AndroidBridge unavailable');
-        return;
-    }
-    const result = window.AndroidBridge.forceEnableAOD();
-    if (result === 'OK') {
-        res.innerHTML = '<span class="ok">doze_always_on = 1 written.</span>';
-        addLog('OK: doze_always_on set to 1');
-        refresh();
-    } else {
-        res.innerHTML = '<span class="err">' + result + '</span>';
-        addLog('ERROR: ' + result);
-    }
-}
-
 function refresh() {
     if (!window.AndroidBridge) {
         $('title').textContent = 'AOD Enabler';
@@ -265,7 +251,6 @@ function refresh() {
     $('infoCode').textContent     = window.AndroidBridge.getDeviceCodename();
     $('infoMfr').textContent      = window.AndroidBridge.getManufacturer();
     $('infoAndroid').textContent  = window.AndroidBridge.getAndroidVersion();
-    addLog('doze_always_on = ' + window.AndroidBridge.getDozeAlwaysOnValue());
 
     const b = window.AndroidBridge.getAODBrightness();
     $('brightnessSlider').value = b;

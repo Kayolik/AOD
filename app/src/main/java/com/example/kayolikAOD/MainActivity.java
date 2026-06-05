@@ -2,9 +2,10 @@ package com.example.kayolikAOD;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -37,7 +38,16 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    return true;
+                }
+                return false;
+            }
+        });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/index.html");
     }
@@ -50,32 +60,10 @@ public class MainActivity extends Activity {
 
     public class AndroidBridge {
 
-        @JavascriptInterface
-        public String getDozeAlwaysOnValue() {
-            try {
-                int v = Settings.Secure.getInt(getContentResolver(), "doze_always_on", -1);
-                return v == -1 ? "unset" : String.valueOf(v);
-            } catch (Exception e) {
-                return "error: " + e.getMessage();
-            }
-        }
-
         @JavascriptInterface public String getDeviceModel()     { return android.os.Build.MODEL; }
         @JavascriptInterface public String getDeviceCodename()  { return android.os.Build.DEVICE; }
         @JavascriptInterface public String getManufacturer()    { return android.os.Build.MANUFACTURER; }
         @JavascriptInterface public String getAndroidVersion()  { return "Android " + android.os.Build.VERSION.RELEASE + " (API " + android.os.Build.VERSION.SDK_INT + ")"; }
-
-        @JavascriptInterface
-        public String forceEnableAOD() {
-            try {
-                boolean ok = Settings.Secure.putInt(getContentResolver(), "doze_always_on", 1);
-                return ok ? "OK" : "FAILED";
-            } catch (SecurityException e) {
-                return "No permission. Run: adb shell pm grant com.example.kayolikAOD android.permission.WRITE_SECURE_SETTINGS";
-            } catch (Exception e) {
-                return "Error: " + e.getMessage();
-            }
-        }
 
         @JavascriptInterface
         public int getAODBrightness() {
