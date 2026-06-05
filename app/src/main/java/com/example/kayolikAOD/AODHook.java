@@ -31,9 +31,6 @@ public class AODHook implements IXposedHookLoadPackage {
             hookBatteryController(lpparam);
             hookMotorolaDoze(lpparam);
         }
-        if (pkg.equals("com.android.settings")) {
-            hookSettingsControllers(lpparam);
-        }
     }
 
     private void hookAmbientDisplay(XC_LoadPackage.LoadPackageParam lpparam) {
@@ -148,21 +145,6 @@ public class AODHook implements IXposedHookLoadPackage {
                     log("OK " + cls + "." + method);
                 } catch (Throwable ignored) {}
             }
-        }
-    }
-
-    private void hookSettingsControllers(XC_LoadPackage.LoadPackageParam lpparam) {
-        String[] controllers = {
-            "com.android.settings.display.AmbientDisplayAlwaysOnPreferenceController",
-            "com.android.settings.display.AmbientDisplayWhenToShowPreferenceController",
-            "com.motorola.settings.display.AmbientDisplayPreferenceController"
-        };
-        for (String c : controllers) {
-            try {
-                XposedHelpers.findAndHookMethod(c, lpparam.classLoader, "getAvailabilityStatus",
-                    XC_MethodReplacement.returnConstant(0));
-                log("OK " + c);
-            } catch (Throwable t) { log("SKIP " + c); }
         }
     }
 

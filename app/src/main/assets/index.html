@@ -8,137 +8,117 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #0a0a0a; }
 body {
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    color: #c8c8c8;
-    padding: 0 0 32px;
+    font: 13px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: #c0c0c0;
     min-height: 100vh;
     -webkit-user-select: none;
     user-select: none;
-    font-size: 13px;
-    line-height: 1.55;
+    padding: 0 0 40px;
 }
-.container { max-width: 560px; margin: 0 auto; padding: 0 16px; }
+.c { max-width: 560px; margin: 0 auto; padding: 0 16px; }
 
-header { padding: 22px 0 14px; border-bottom: 1px solid #1c1c1c; }
-h1 { font-size: 15px; font-weight: 600; color: #ededed; margin: 0; }
-header .meta { font-size: 11px; color: #6a6a6a; margin-top: 4px; }
+.h { padding: 24px 0 16px; border-bottom: 1px solid #1a1a1a; }
+.h h1 { font-size: 15px; font-weight: 600; color: #ededed; }
+.h .v { font-size: 11px; color: #5a5a5a; margin-top: 4px; }
 
-section { padding: 16px 0 20px; border-bottom: 1px solid #1c1c1c; }
-section:last-of-type { border-bottom: none; }
-h2 {
-    font-size: 11px;
-    font-weight: 600;
-    color: #6a6a6a;
-    margin-bottom: 10px;
-    text-transform: none;
-}
+.s { padding: 18px 0 20px; border-bottom: 1px solid #1a1a1a; }
+.s:last-of-type { border-bottom: none; }
+h2 { font-size: 11px; font-weight: 600; color: #6a6a6a; margin-bottom: 10px; }
 
-.row { display: flex; justify-content: space-between; padding: 2px 0; }
-.row .k { color: #6a6a6a; }
-.row .v { color: #ededed; text-align: right; max-width: 65%; word-break: break-word; }
+.r { display: flex; justify-content: space-between; padding: 2px 0; }
+.r .k { color: #6a6a6a; }
+.r .v { color: #ededed; text-align: right; max-width: 65%; word-break: break-word; }
 
-ol { padding-left: 18px; margin: 0; }
-ol li { padding: 2px 0 2px 4px; }
-ol li::marker { color: #6a6a6a; }
+ol { padding-left: 18px; }
+ol li { padding: 3px 0; }
+ol li::marker { color: #5a5a5a; }
 ol li b { color: #ededed; font-weight: 600; }
-ol li code { color: #c8c8c8; }
+code { color: #ededed; }
 
-.cmd { color: #ededed; }
-.cmd::before { content: '$ '; color: #6a6a6a; }
+.tip { font-size: 11.5px; color: #5a5a5a; margin: 12px 0 6px; }
 
 pre {
     background: #050505;
-    border: 1px solid #1c1c1c;
-    border-radius: 0;
+    border: 1px solid #1a1a1a;
     padding: 10px 12px;
     font: inherit;
     font-size: 11.5px;
     color: #6fcf6a;
-    margin: 8px 0 0;
+    margin-top: 6px;
+    min-height: 60px;
     max-height: 220px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-all;
 }
 
-.lbl { font-size: 11px; color: #6a6a6a; margin: 12px 0 0; }
-
-footer {
-    padding: 18px 0 0;
-    text-align: center;
-    font-size: 11px;
-    color: #4a4a4a;
-}
-footer a { color: #6a6a6a; text-decoration: none; }
-footer a:hover { color: #ededed; text-decoration: underline; }
-footer .dot { color: #2a2a2a; margin: 0 8px; }
+.f { padding: 18px 0 0; text-align: center; font-size: 11px; color: #4a4a4a; }
+.f a { color: #6a6a6a; text-decoration: none; }
+.f a:hover { color: #ededed; text-decoration: underline; }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="c">
 
-<header>
+<div class="h">
     <h1>AOD Enabler</h1>
-    <div class="meta">v1.8.1 · LSPosed module · Android 15</div>
-</header>
+    <div class="v">v1.8.1 · LSPosed module</div>
+</div>
 
-<section>
+<div class="s">
     <h2>Device</h2>
-    <div class="row"><span class="k">Model</span><span class="v" id="infoModel">—</span></div>
-    <div class="row"><span class="k">Codename</span><span class="v" id="infoCode">—</span></div>
-    <div class="row"><span class="k">Manufacturer</span><span class="v" id="infoMfr">—</span></div>
-    <div class="row"><span class="k">Android</span><span class="v" id="infoAndroid">—</span></div>
-</section>
+    <div class="r"><span class="k">Model</span><span class="v" id="m">...</span></div>
+    <div class="r"><span class="k">Codename</span><span class="v" id="c">...</span></div>
+    <div class="r"><span class="k">Manufacturer</span><span class="v" id="f">...</span></div>
+    <div class="r"><span class="k">Android</span><span class="v" id="a">...</span></div>
+</div>
 
-<section>
+<div class="s">
     <h2>Setup</h2>
     <ol>
-        <li>Enable <b>AOD Enabler</b> in <b>LSPosed Manager</b>.</li>
-        <li>Scope: <b>System Framework</b>, <b>SystemUI</b>, <b>Settings</b>. Do not tick the AOD Enabler app.</li>
-        <li><b>Reboot</b> the device.</li>
-        <li>Open <b>Settings &gt; Display</b>. The AOD toggle should be there.</li>
+        <li>Enable <b>AOD Enabler</b> in LSPosed Manager.</li>
+        <li>Scope: <b>System Framework</b> and <b>SystemUI</b>. Do not tick the AOD Enabler app, do not tick Settings.</li>
+        <li>Reboot.</li>
+        <li>AOD toggle should be in <b>Settings &gt; Display</b>.</li>
     </ol>
-</section>
+</div>
 
-<section>
+<div class="s">
     <h2>Debug</h2>
-    <div class="cmd">adb logcat -s AODHook:*</div>
-    <pre id="logBox">—</pre>
-</section>
+    <div class="tip">Run on a PC: <code>adb logcat -s AODHook:*</code></div>
+    <pre id="log"></pre>
+</div>
 
-<footer>
+<div class="f">
     <a href="https://github.com/Kayolik/AOD" target="_blank" rel="noopener">github.com/Kayolik/AOD</a>
-    <span class="dot">·</span>
-    <a href="https://github.com/Kayolik/AOD/releases" target="_blank" rel="noopener">updates</a>
-</footer>
+</div>
 
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 
-function addLog(msg) {
-    const box = $('logBox');
-    const time = new Date().toLocaleTimeString('en-GB');
-    if (box.textContent === '—') box.textContent = '';
-    box.textContent += '[' + time + '] ' + msg + '\n';
+function log(msg) {
+    const box = $('log');
+    const t = new Date().toLocaleTimeString('en-GB');
+    box.textContent += '[' + t + '] ' + msg + '\n';
     box.scrollTop = box.scrollHeight;
 }
 
 function refresh() {
     if (!window.AndroidBridge) {
-        $('infoModel').textContent = $('infoCode').textContent = $('infoMfr').textContent = $('infoAndroid').textContent = '—';
-        addLog('preview mode (no AndroidBridge)');
+        $('m').textContent = $('c').textContent = $('f').textContent = $('a').textContent = '—';
+        log('preview (no bridge)');
         return;
     }
-    $('infoModel').textContent    = window.AndroidBridge.getDeviceModel();
-    $('infoCode').textContent     = window.AndroidBridge.getDeviceCodename();
-    $('infoMfr').textContent      = window.AndroidBridge.getManufacturer();
-    $('infoAndroid').textContent  = window.AndroidBridge.getAndroidVersion();
+    $('m').textContent = window.AndroidBridge.getDeviceModel();
+    $('c').textContent = window.AndroidBridge.getDeviceCodename();
+    $('f').textContent = window.AndroidBridge.getManufacturer();
+    $('a').textContent = window.AndroidBridge.getAndroidVersion();
+    log('device info loaded');
 }
 
 window.onload = function() {
-    addLog('panel loaded');
     refresh();
 };
 </script>
