@@ -43,8 +43,7 @@ No custom rendering — hooks only.
    - Do **not** tick AOD Enabler itself
    - Do **not** tick Settings
 6. Reboot
-7. Settings → Display → **Always-on display** toggle should appear
-8. Turn it on
+
 
 ---
 
