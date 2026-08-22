@@ -163,7 +163,7 @@ May work on other Motorola devices on Android 15 where AOD hardware exists but t
 
 ## Contact
 
-Discord: **kayolikk**
+Discord: **t3zna**
 
 ---
 
